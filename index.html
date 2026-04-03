@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- iPhone / PWA essentials -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sudoku">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="description" content="Sudoku puzzle game — play offline on your iPhone.">
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
+  <link rel="stylesheet" href="css/app.css">
+  <title>Sudoku</title>
+</head>
+<body>
+
+  <!-- ── Header ────────────────────────────────────────────────────────────── -->
+  <header id="header">
+    <div id="header-left">
+      <span id="difficulty-badge" class="badge">Medium</span>
+    </div>
+    <h1 id="app-title">Sudoku</h1>
+    <div id="header-right">
+      <span id="timer">00:00</span>
+      <button id="btn-pause" aria-label="Pause game" title="Pause">&#9646;&#9646;</button>
+    </div>
+  </header>
+
+  <!-- ── Main play area ────────────────────────────────────────────────────── -->
+  <main id="main">
+
+    <!-- Stats row -->
+    <div id="stats-row">
+      <div class="stat">
+        <span class="stat-label">Errors</span>
+        <span id="stat-errors" class="stat-value">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Hints</span>
+        <span id="stat-hints" class="stat-value">0 / 3</span>
+      </div>
+    </div>
+
+    <!-- 9×9 grid -->
+    <div id="grid" role="grid" aria-label="Sudoku grid"></div>
+
+    <!-- Action controls -->
+    <div id="controls">
+      <button id="btn-erase"  class="ctrl-btn" aria-label="Erase cell">
+        <span class="ctrl-icon">&#9003;</span>
+        <span class="ctrl-label">Erase</span>
+      </button>
+      <button id="btn-notes"  class="ctrl-btn" aria-label="Toggle notes mode">
+        <span class="ctrl-icon">&#9998;</span>
+        <span class="ctrl-label">Notes</span>
+      </button>
+      <button id="btn-hint"   class="ctrl-btn" aria-label="Get a hint">
+        <span class="ctrl-icon">&#128161;</span>
+        <span class="ctrl-label">Hint</span>
+      </button>
+      <button id="btn-check"  class="ctrl-btn" aria-label="Check solution">
+        <span class="ctrl-icon">&#10003;</span>
+        <span class="ctrl-label">Check</span>
+      </button>
+    </div>
+
+    <!-- Number pad -->
+    <div id="numpad" role="group" aria-label="Number input">
+      <button class="num-btn" data-num="1" aria-label="Enter 1">1</button>
+      <button class="num-btn" data-num="2" aria-label="Enter 2">2</button>
+      <button class="num-btn" data-num="3" aria-label="Enter 3">3</button>
+      <button class="num-btn" data-num="4" aria-label="Enter 4">4</button>
+      <button class="num-btn" data-num="5" aria-label="Enter 5">5</button>
+      <button class="num-btn" data-num="6" aria-label="Enter 6">6</button>
+      <button class="num-btn" data-num="7" aria-label="Enter 7">7</button>
+      <button class="num-btn" data-num="8" aria-label="Enter 8">8</button>
+      <button class="num-btn" data-num="9" aria-label="Enter 9">9</button>
+    </div>
+
+  </main>
+
+  <!-- ── Modals ─────────────────────────────────────────────────────────────── -->
+
+  <!-- Difficulty / new game picker -->
+  <div id="modal-new-game" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-ng-title">
+    <div class="modal-card">
+      <h2 id="modal-ng-title">New Game</h2>
+      <p class="modal-sub">Choose a difficulty</p>
+      <div class="diff-buttons">
+        <button class="diff-btn" data-diff="easy">Easy</button>
+        <button class="diff-btn" data-diff="medium">Medium</button>
+        <button class="diff-btn" data-diff="hard">Hard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pause overlay -->
+  <div id="modal-pause" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h2>Paused</h2>
+      <p class="modal-sub" id="pause-timer-display">00:00</p>
+      <button id="btn-resume" class="primary-btn">Resume</button>
+      <button id="btn-new-from-pause" class="secondary-btn">New Game</button>
+    </div>
+  </div>
+
+  <!-- Win screen -->
+  <div id="modal-win" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-win-title">
+    <div class="modal-card">
+      <div class="win-trophy">&#127942;</div>
+      <h2 id="modal-win-title">Puzzle Solved!</h2>
+      <p id="win-stats" class="modal-sub"></p>
+      <button id="btn-play-again" class="primary-btn">Play Again</button>
+    </div>
+  </div>
+
+  <!-- Resume prompt (shown on load when a save exists) -->
+  <div id="modal-resume" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h2>Resume?</h2>
+      <p class="modal-sub" id="resume-info">You have a saved game.</p>
+      <button id="btn-resume-save" class="primary-btn">Continue</button>
+      <button id="btn-discard-save" class="secondary-btn">New Game</button>
+    </div>
+  </div>
+
+  <!-- Check-result flash (ephemeral, not a blocking modal) -->
+  <div id="toast" class="toast hidden" aria-live="polite"></div>
+
+  <!-- Scripts — load order matters: sudoku → game → ui → app -->
+  <script src="js/sudoku.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

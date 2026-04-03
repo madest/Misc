@@ -1,0 +1,485 @@
+/* ── Reset & base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:          #1a1a2e;
+  --surface:     #16213e;
+  --surface2:    #0f3460;
+  --accent:      #e94560;
+  --accent2:     #533483;
+  --text:        #eaeaea;
+  --text-muted:  #888;
+  --given:       #c9d1e0;
+  --cell-bg:     #16213e;
+  --cell-hover:  #1e2d50;
+  --cell-sel:    #0f3460;
+  --cell-hi:     #1c2c4a;
+  --cell-same:   #22305a;
+  --error-bg:    #3d1a22;
+  --error-text:  #ff6b6b;
+  --hint-text:   #7ecfff;
+  --border:      #2a3a5c;
+  --border-box:  #4a6080;
+  --radius:      10px;
+  --header-h:    56px;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /* iPhone safe areas */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  touch-action: manipulation;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-h);
+  padding: 0 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+#app-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+#header-left, #header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 80px;
+}
+
+#header-right {
+  justify-content: flex-end;
+}
+
+.badge {
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+#timer {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+#btn-pause {
+  font-size: 14px;
+  color: var(--text-muted);
+  padding: 6px 8px;
+  border-radius: 8px;
+  line-height: 1;
+  min-width: 36px;
+  min-height: 36px;
+}
+#btn-pause:active { background: var(--surface2); }
+
+/* ── Main container ──────────────────────────────────────────────────────── */
+#main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 16px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* ── Stats row ───────────────────────────────────────────────────────────── */
+#stats-row {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  justify-content: center;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ── Sudoku grid ─────────────────────────────────────────────────────────── */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 1;
+  border: 2px solid var(--border-box);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--border-box); /* shows as thick-box lines */
+  gap: 1px;
+}
+
+.cell {
+  background: var(--cell-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(14px, 4vw, 22px);
+  font-weight: 600;
+  aspect-ratio: 1;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.1s;
+  /* Box borders — thicker every 3rd line */
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Right side of box */
+.cell[data-col="2"],
+.cell[data-col="5"] {
+  border-right: 2px solid var(--border-box);
+}
+/* Bottom side of box */
+.cell[data-row="2"],
+.cell[data-row="5"] {
+  border-bottom: 2px solid var(--border-box);
+}
+
+/* Remove last-column/last-row extra border */
+.cell[data-col="8"] { border-right: none; }
+.cell[data-row="8"] { border-bottom: none; }
+
+/* ── Cell states ─────────────────────────────────────────────────────────── */
+.cell.given {
+  color: var(--given);
+  font-weight: 700;
+}
+
+.cell.player {
+  color: #6eb5ff;
+}
+
+.cell.selected {
+  background: var(--cell-sel) !important;
+}
+
+.cell.highlighted {
+  background: var(--cell-hi);
+}
+
+.cell.same-number {
+  background: var(--cell-same);
+}
+
+.cell.error {
+  background: var(--error-bg) !important;
+  color: var(--error-text) !important;
+}
+
+.cell.hint {
+  color: var(--hint-text);
+}
+
+.cell.complete {
+  color: #7ef78e;
+}
+
+/* ── Notes sub-grid inside a cell ────────────────────────────────────────── */
+.cell.notes-cell {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding: 1px;
+}
+
+.note-digit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(6px, 1.5vw, 9px);
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.note-digit.active {
+  color: #a8c4e0;
+}
+
+/* ── Controls row ────────────────────────────────────────────────────────── */
+#controls {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 380px;
+  justify-content: space-between;
+}
+
+.ctrl-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 56px;
+  transition: background 0.1s, transform 0.08s;
+}
+
+.ctrl-btn:active {
+  background: var(--surface2);
+  transform: scale(0.96);
+}
+
+.ctrl-btn.active {
+  background: var(--surface2);
+  border-color: var(--accent2);
+}
+
+.ctrl-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.ctrl-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.ctrl-btn.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ── Number pad ──────────────────────────────────────────────────────────── */
+#numpad {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 6px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.num-btn {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(18px, 5vw, 26px);
+  font-weight: 700;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 44px;
+  transition: background 0.1s, transform 0.08s;
+  color: #6eb5ff;
+}
+
+.num-btn:active {
+  background: var(--surface2);
+  transform: scale(0.9);
+}
+
+.num-btn.exhausted {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* ── Modals ──────────────────────────────────────────────────────────────── */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.modal-card h2 {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.modal-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Difficulty picker */
+.diff-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.diff-btn {
+  padding: 14px;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 700;
+  border: 2px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+}
+
+.diff-btn:active { transform: scale(0.97); }
+
+.diff-btn[data-diff="easy"]   { border-color: #4caf50; }
+.diff-btn[data-diff="medium"] { border-color: #ff9800; }
+.diff-btn[data-diff="hard"]   { border-color: var(--accent); }
+
+/* Primary / secondary buttons */
+.primary-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  transition: opacity 0.15s, transform 0.08s;
+}
+.primary-btn:active { opacity: 0.8; transform: scale(0.97); }
+
+.secondary-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  transition: background 0.15s, transform 0.08s;
+}
+.secondary-btn:active { background: var(--surface2); transform: scale(0.97); }
+
+/* Win modal */
+.win-trophy {
+  font-size: 56px;
+  line-height: 1;
+}
+
+/* ── Toast notification ──────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom) + 90px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 20px;
+  z-index: 200;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.toast.hidden {
+  opacity: 0;
+}
+
+/* ── Landscape guard ─────────────────────────────────────────────────────── */
+@media (orientation: landscape) and (max-height: 500px) {
+  #main {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  #grid {
+    max-width: min(45vh, 280px);
+  }
+
+  #stats-row { width: auto; }
+  #controls  { max-width: 200px; }
+  #numpad    { max-width: 200px; grid-template-columns: repeat(3, 1fr); }
+}
