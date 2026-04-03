@@ -310,23 +310,24 @@ button {
 
 /* ── Number pad ──────────────────────────────────────────────────────────── */
 #numpad {
-  display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  gap: 6px;
+  display: flex;
+  gap: 4px;
   width: 100%;
   max-width: 380px;
 }
 
 .num-btn {
+  flex: 1 1 0;      /* equal share, allowed to shrink below content size */
+  min-width: 0;     /* override browser's implicit min-width on flex items */
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(18px, 5vw, 26px);
+  font-size: clamp(16px, 4.5vw, 22px);
   font-weight: 700;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  min-height: 44px;
   transition: background 0.1s, transform 0.08s;
   color: #6eb5ff;
 }
